@@ -4,6 +4,7 @@ using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using GarbageCollector.Models;
 
 namespace GarbageCollector.Data
 {
@@ -22,9 +23,21 @@ namespace GarbageCollector.Data
             {
                 Name = "Admin",
                 NormalizedName = "ADMIN"
+            },
+            new IdentityRole
+            {
+                Name = "Customer",
+                NormalizedName = "CUSTOMER"
+            },
+            new IdentityRole
+            {
+                Name = "Employee",
+                NormalizedName = "EMPLOYEE"
             }
             );
         }
+        public DbSet<GarbageCollector.Models.Customer> Customer { get; set; }
+        public DbSet<GarbageCollector.Models.Employee> Employee { get; set; }
 
     }
 }
