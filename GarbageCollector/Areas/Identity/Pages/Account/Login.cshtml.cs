@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using System.Security.Claims;
+using GarbageCollector.Data.Migrations;
 
 namespace GarbageCollector.Areas.Identity.Pages.Account
 {
@@ -82,8 +84,17 @@ namespace GarbageCollector.Areas.Identity.Pages.Account
                 var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
                 if (result.Succeeded)
                 {
+                    var IdentityUserId = this.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                    if (User.IsInRole("Customer"))
+                    {
+                        return RedirectToAction("Index", "Customer");
+                    }
+                    else if (User.IsInRole("Employee"))
+                    {
+                        return RedirectToAction("Index", "Employee");
+                    }
                     _logger.LogInformation("User logged in.");
-                    return LocalRedirect(returnUrl);
+                    
                 }
                 if (result.RequiresTwoFactor)
                 {

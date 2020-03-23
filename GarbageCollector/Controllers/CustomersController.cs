@@ -9,10 +9,12 @@ using GarbageCollector.Data;
 using GarbageCollector.Models;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using GarbageCollector.ActionFilters;
 
 namespace GarbageCollector.Controllers
 {
     [Authorize(Roles = "Customer")]
+    
     public class CustomersController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -25,8 +27,9 @@ namespace GarbageCollector.Controllers
         // GET: Customers
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Customer.Include(c => c.IdentityUser);
-            return View(await applicationDbContext.ToListAsync());
+            var userId = this.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var customers = _context.Customer.Where(s => s.IdentityUserId == userId).ToList();
+            return View(customers);
         }
 
         // GET: Customers/Details/5
@@ -51,8 +54,19 @@ namespace GarbageCollector.Controllers
         // GET: Customers/Create
         public IActionResult Create()
         {
+            Customer customer = new Customer();
             ViewData["IdentityUserId"] = new SelectList(_context.Users, "Id", "Id");
-            return View();
+
+            List<SelectListItem> DaysOfWeek = new List<SelectListItem>();
+            DaysOfWeek.Add(new SelectListItem() { Value = "Monday", Text = "Monday" });
+            DaysOfWeek.Add(new SelectListItem() { Value = "Tuesday", Text = "Tuesday"});
+            DaysOfWeek.Add(new SelectListItem() { Value = "Wednesday", Text = "Wednesday" });
+            DaysOfWeek.Add(new SelectListItem() { Value = "Thursday", Text = "Thursday" });
+            DaysOfWeek.Add(new SelectListItem() { Value = "Friday", Text = "Friday" });
+
+            ViewBag.DaysOfWeek = new SelectList(DaysOfWeek, "Value", "Text");
+            
+            return View(customer);
         }
 
         // POST: Customers/Create
@@ -69,7 +83,7 @@ namespace GarbageCollector.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-           // ViewData["IdentityUserId"] = new SelectList(_context.Users, "Id", "Id", customer.IdentityUserId);
+            ViewData["IdentityUserId"] = new SelectList(_context.Users, "Id", "Id", customer.IdentityUserId);
             return View(customer);
         }
 

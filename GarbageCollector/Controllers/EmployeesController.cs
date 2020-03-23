@@ -10,10 +10,12 @@ using GarbageCollector.Models;
 using System.Security.Claims;
 using GarbageCollector.Data.Migrations;
 using Microsoft.AspNetCore.Authorization;
+using GarbageCollector.ActionFilters;
 
 namespace GarbageCollector.Controllers
 {
     [Authorize(Roles = "Employee")]
+   
     public class EmployeesController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -26,7 +28,11 @@ namespace GarbageCollector.Controllers
         // GET: Employees
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Employee.Include(e => e.IdentityUser);
+            var employeeId = this.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var employee = _context.Employee.Where(c => c.IdentityUserId == employeeId).SingleOrDefault();
+            var applicationDbContext = _context.Customer.Include(e => e.ZipCode == employee.ZipCode);
+
             return View(await applicationDbContext.ToListAsync());
         }
 
@@ -53,7 +59,8 @@ namespace GarbageCollector.Controllers
         public IActionResult Create()
         {
             ViewData["IdentityUserId"] = new SelectList(_context.Users, "Id", "Id");
-            return View();
+            Employee employee = new Employee();
+            return View(employee);
         }
 
         // POST: Employees/Create

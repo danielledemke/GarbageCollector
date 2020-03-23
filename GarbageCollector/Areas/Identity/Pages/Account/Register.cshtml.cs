@@ -89,11 +89,12 @@ namespace GarbageCollector.Areas.Identity.Pages.Account
                 var user = new IdentityUser { UserName = Input.Email, Email = Input.Email };
                 var result = await _userManager.CreateAsync(user, Input.Password);
                 if (result.Succeeded)
+                { 
                     if (await _roleManager.RoleExistsAsync(Input.Role))
                     {
                         await _userManager.AddToRoleAsync(user, Input.Role);
                     }
-                {
+                
                     _logger.LogInformation("User created a new account with password.");
 
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
@@ -116,11 +117,13 @@ namespace GarbageCollector.Areas.Identity.Pages.Account
                         await _signInManager.SignInAsync(user, isPersistent: false);
                         if(Input.Role  == "Customer")
                         {
-                            return RedirectToAction("Create", "Customer");
+                            //return RedirectToAction("Create", "Customer");
+                            return LocalRedirect(returnUrl);
                         }
                         else if(Input.Role == "Employee")
                         {
-                            return RedirectToAction("Create", "Employee");
+                            //return RedirectToAction("Create", "Employee");
+                            return LocalRedirect(returnUrl);
                         }
                      
                     }
