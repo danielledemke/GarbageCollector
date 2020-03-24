@@ -26,14 +26,23 @@ namespace GarbageCollector.Controllers
         }
 
         // GET: Employees
-        public async Task<IActionResult> Index()
+        public ActionResult Index()
         {
             var employeeId = this.User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             var employee = _context.Employee.Where(c => c.IdentityUserId == employeeId).SingleOrDefault();
-            var applicationDbContext = _context.Customer.Include(e => e.ZipCode == employee.ZipCode);
+            var applicationDbContext = _context.Customer.Where(e => e.ZipCode == employee.ZipCode).ToList();
 
-            return View(await applicationDbContext.ToListAsync());
+            if (applicationDbContext.Count == 0)
+            {
+
+                return View("Details");
+            }
+            else
+            {
+                return View(applicationDbContext);
+            }
+            
         }
 
         // GET: Employees/Details/5
@@ -167,6 +176,17 @@ namespace GarbageCollector.Controllers
         private bool EmployeeExists(int id)
         {
             return _context.Employee.Any(e => e.Id == id);
+        }
+
+        public ActionResult ConfirmPickup(Customer customer)
+        {
+            double pricePerPickup = 25;
+            var customerToCharge = _context.Customer.Where(c => c.Id == customer.Id).SingleOrDefault();
+            customerToCharge.TotalMoneyOwed += pricePerPickup;
+            _context.SaveChanges();
+            return RedirectToAction(nameof(Index));
+
+
         }
     }
 }
