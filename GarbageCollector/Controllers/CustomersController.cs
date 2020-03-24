@@ -25,10 +25,16 @@ namespace GarbageCollector.Controllers
         }
 
         // GET: Customers
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
             var userId = this.User.FindFirstValue(ClaimTypes.NameIdentifier);
             var customers = _context.Customer.Where(s => s.IdentityUserId == userId).ToList();
+            double totalMoneyOwed = 0;
+            foreach(var customer in customers)
+            {
+                totalMoneyOwed += customer.TotalMoneyOwed;
+            }
+            ViewBag.TotalMoneyOwed = totalMoneyOwed;
             return View(customers);
         }
 
@@ -88,19 +94,20 @@ namespace GarbageCollector.Controllers
         }
 
         // GET: Customers/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public ActionResult Edit(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var customer = await _context.Customer.FindAsync(id);
+            var customer = _context.Customer.SingleOrDefault(c => c.Id == id);
             if (customer == null)
             {
                 return NotFound();
             }
-            ViewData["IdentityUserId"] = new SelectList(_context.Users, "Id", "Id", customer.IdentityUserId);
+            List<SelectListItem> DaysOfWeek = new List<SelectListItem>();
+            DaysOfWeek.Add(new SelectListItem() { Value = "Monday", Text = "Monday" });
+            DaysOfWeek.Add(new SelectListItem() { Value = "Tuesday", Text = "Tuesday" });
+            DaysOfWeek.Add(new SelectListItem() { Value = "Wednesday", Text = "Wednesday" });
+            DaysOfWeek.Add(new SelectListItem() { Value = "Thursday", Text = "Thursday" });
+            DaysOfWeek.Add(new SelectListItem() { Value = "Friday", Text = "Friday" });
+            ViewBag.DaysOfWeek = new SelectList(DaysOfWeek, "Value", "Text");
             return View(customer);
         }
 
@@ -109,35 +116,23 @@ namespace GarbageCollector.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,FirstName,LastName,StreetAddress,State,ZipCode,WeeklyPickupDay,TotalMoneyOwed,StartDate,EndDate,ExtraPickupDay")] Customer customer)
+        public IActionResult Edit(Customer customer)
         {
-            if (id != customer.Id)
-            {
-                return NotFound();
-            }
+            var customerInDb = _context.Customer.SingleOrDefault(c => c.Id == customer.Id);
+            customerInDb.FirstName = customer.FirstName;
+            customerInDb.LastName = customer.LastName;
+            customerInDb.StreetAddress = customer.StreetAddress;
+            customerInDb.State = customer.State;
+            customerInDb.ZipCode = customer.ZipCode;
+            customerInDb.WeeklyPickupDay = customer.WeeklyPickupDay;
+            customerInDb.ExtraPickupDay = customer.ExtraPickupDay;
+            customerInDb.StartDate = customer.StartDate;
+            customerInDb.EndDate = customer.EndDate;
+            _context.SaveChanges();
 
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(customer);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!CustomerExists(customer.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-           // ViewData["IdentityUserId"] = new SelectList(_context.Users, "Id", "Id", customer.IdentityUserId);
-            return View(customer);
+            return RedirectToAction("Index", "Customer");
+            
+           
         }
 
         // GET: Customers/Delete/5

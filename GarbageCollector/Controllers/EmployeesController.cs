@@ -188,5 +188,18 @@ namespace GarbageCollector.Controllers
 
 
         }
+
+        public ActionResult FilterByDay(string day)
+        {
+            List<SelectListItem> days = new List<SelectListItem>();
+            days.Add(new SelectListItem() { Value = "Monday", Text = "Monday" });
+            days.Add(new SelectListItem() { Value = "Tuesday", Text = "Tuesday" });
+            days.Add(new SelectListItem() { Value = "Wednesday", Text = "Wednesday" });
+            days.Add(new SelectListItem() { Value = "Thursday", Text = "Thursday" });
+            days.Add(new SelectListItem() { Value = "Friday", Text = "Friday" });
+            ViewBag.Day = new SelectList(days, "Value", "Text", $"{(int)DateTime.Today.DayOfWeek}");
+            var customers = _context.Customer.Include(c => c.WeeklyPickupDay == day).OrderBy(c => c.LastName);
+            return View(customers);
+        }
     }
 }
