@@ -81,21 +81,22 @@ namespace GarbageCollector.Areas.Identity.Pages.Account
             {
                 // This doesn't count login failures towards account lockout
                 // To enable password failures to trigger account lockout, set lockoutOnFailure: true
+                
                 var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
-                if (result.Succeeded)
-                {
+                
+                
                     var IdentityUserId = this.User.FindFirstValue(ClaimTypes.NameIdentifier);
                     if (User.IsInRole("Customer"))
                     {
-                        return RedirectToAction("Index", "Customer");
+                        return RedirectToAction("Index", "Customers");
                     }
                     else if (User.IsInRole("Employee"))
                     {
-                        return RedirectToAction("Index", "Employee");
+                        return RedirectToAction("Index", "Employees");
                     }
                     _logger.LogInformation("User logged in.");
-                    
-                }
+
+
                 if (result.RequiresTwoFactor)
                 {
                     return RedirectToPage("./LoginWith2fa", new { ReturnUrl = returnUrl, RememberMe = Input.RememberMe });

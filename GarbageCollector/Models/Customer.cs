@@ -38,10 +38,10 @@ namespace GarbageCollector.Models
         public DateTime StartDate { get; set; }
 
         [Display(Name = "End Date")]
-        public DateTime EndDate { get; set; }
+        public DateTime? EndDate { get; set; }
         
         [Display(Name = "Extra Pickup Day")]
-        public DateTime ExtraPickupDay { get; set; }
+        public DateTime? ExtraPickupDay { get; set; }
 
 
         [ForeignKey("IdentityUser")]

@@ -90,10 +90,12 @@ namespace GarbageCollector.Areas.Identity.Pages.Account
                 var result = await _userManager.CreateAsync(user, Input.Password);
                 if (result.Succeeded)
                 { 
-                    if (await _roleManager.RoleExistsAsync(Input.Role))
+                    if( await _roleManager.RoleExistsAsync(Input.Role))
                     {
                         await _userManager.AddToRoleAsync(user, Input.Role);
                     }
+                    
+                     
                 
                     _logger.LogInformation("User created a new account with password.");
 
@@ -104,10 +106,8 @@ namespace GarbageCollector.Areas.Identity.Pages.Account
                         pageHandler: null,
                         values: new { area = "Identity", userId = user.Id, code = code },
                         protocol: Request.Scheme);
-
                     await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
                         $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
-
                     if (_userManager.Options.SignIn.RequireConfirmedAccount)
                     {
                         return RedirectToPage("RegisterConfirmation", new { email = Input.Email });
@@ -115,17 +115,15 @@ namespace GarbageCollector.Areas.Identity.Pages.Account
                     else
                     {
                         await _signInManager.SignInAsync(user, isPersistent: false);
-                        if(Input.Role  == "Customer")
+                        if(Input.Role == "Employee")
                         {
-                            //return RedirectToAction("Create", "Customer");
+                            return RedirectToAction("Create", "Employees");
+                        }
+                        else
+                        {
                             return LocalRedirect(returnUrl);
                         }
-                        else if(Input.Role == "Employee")
-                        {
-                            //return RedirectToAction("Create", "Employee");
-                            return LocalRedirect(returnUrl);
-                        }
-                     
+                        
                     }
                 }
                 foreach (var error in result.Errors)
@@ -133,7 +131,6 @@ namespace GarbageCollector.Areas.Identity.Pages.Account
                     ModelState.AddModelError(string.Empty, error.Description);
                 }
             }
-
             // If we got this far, something failed, redisplay form
             return Page();
         }

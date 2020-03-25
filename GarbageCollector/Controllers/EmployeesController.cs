@@ -26,22 +26,25 @@ namespace GarbageCollector.Controllers
         }
 
         // GET: Employees
-        public ActionResult Index()
+        public async Task<ActionResult> IndexAsync()
         {
+            List<SelectListItem> days = new List<SelectListItem>();
+            days.Add(new SelectListItem() { Value = "Monday", Text = "Monday" });
+            days.Add(new SelectListItem() { Value = "Tuesday", Text = "Tuesday" });
+            days.Add(new SelectListItem() { Value = "Wednesday", Text = "Wednesday" });
+            days.Add(new SelectListItem() { Value = "Thursday", Text = "Thursday" });
+            days.Add(new SelectListItem() { Value = "Friday", Text = "Friday" });
+            ViewBag.Day = new SelectList(days, "Value", "Text", $"{(int)DateTime.Today.DayOfWeek}");
+
             var employeeId = this.User.FindFirstValue(ClaimTypes.NameIdentifier);
-
             var employee = _context.Employee.Where(c => c.IdentityUserId == employeeId).SingleOrDefault();
-            var applicationDbContext = _context.Customer.Where(e => e.ZipCode == employee.ZipCode).ToList();
+            var applicationDbContext = _context.Customer.Where(e => e.ZipCode == employee.ZipCode);
+            return View(await applicationDbContext.ToListAsync());
+            
+            
 
-            if (applicationDbContext.Count == 0)
-            {
-
-                return View("Details");
-            }
-            else
-            {
-                return View(applicationDbContext);
-            }
+                
+            
             
         }
 
@@ -84,7 +87,7 @@ namespace GarbageCollector.Controllers
                 employee.IdentityUserId = this.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 _context.Add(employee);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(IndexAsync));
             }
            ViewData["IdentityUserId"] = new SelectList(_context.Users, "Id", "Id", employee.IdentityUserId);
             return View(employee);
@@ -137,7 +140,7 @@ namespace GarbageCollector.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(IndexAsync));
             }
             ViewData["IdentityUserId"] = new SelectList(_context.Users, "Id", "Id", employee.IdentityUserId);
             return View(employee);
@@ -170,7 +173,7 @@ namespace GarbageCollector.Controllers
             var employee = await _context.Employee.FindAsync(id);
             _context.Employee.Remove(employee);
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(IndexAsync));
         }
 
         private bool EmployeeExists(int id)
@@ -184,7 +187,7 @@ namespace GarbageCollector.Controllers
             var customerToCharge = _context.Customer.Where(c => c.Id == customer.Id).SingleOrDefault();
             customerToCharge.TotalMoneyOwed += pricePerPickup;
             _context.SaveChanges();
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(IndexAsync));
 
 
         }
@@ -199,7 +202,7 @@ namespace GarbageCollector.Controllers
             days.Add(new SelectListItem() { Value = "Friday", Text = "Friday" });
             ViewBag.Day = new SelectList(days, "Value", "Text", $"{(int)DateTime.Today.DayOfWeek}");
             var customers = _context.Customer.Include(c => c.WeeklyPickupDay == day).OrderBy(c => c.LastName);
-            return View(customers);
+            return customers;
         }
     }
 }
