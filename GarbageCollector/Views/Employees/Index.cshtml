@@ -7,6 +7,11 @@
 
 <h1>Today's Scheduled Pickups</h1>
 
+<p>
+    <a asp-action="Edit" asp-route-id="@ViewBag.CurrentEmployeeId">Edit Account Details</a>
+</p>
+
+
 @using (Html.BeginForm("FilterByDay", "Employees"))
 {
     @Html.ValidationSummary(true)
